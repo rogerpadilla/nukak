@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2015",
+    "moduleResolution": "node",
+    "strict": true,
+    "strictNullChecks": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "lib": ["esnext", "dom"],
+    "sourceMap": true,
+    "incremental": true,
+    "declaration": true,
+    "declarationDir": "dist",
+    "outDir": ".tmp"
+  },
+  "exclude": ["node_modules", "dist", "coverage", ".vscode"]
+}

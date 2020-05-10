@@ -1,0 +1,14 @@
+{
+  // This will make VsCode to recommend these extensions by default (the ones related to the tools we use)
+  "recommendations": [
+    // make vscode to verify our eslint rules while coding
+    // https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint
+    "dbaeumer.vscode-eslint",
+    // make vscode to verify our prettier formatting rules while coding
+    // https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+    "esbenp.prettier-vscode",
+    // make vscode debugger to understand when webpack task produces errors
+    // https://marketplace.visualstudio.com/items?itemName=eamodio.tsl-problem-matcher
+    "eamodio.tsl-problem-matcher"
+  ]
+}
