@@ -11,6 +11,7 @@ export type QueryLogicalOperator<T> = {
 };
 
 export type QueryComparisonOperator = {
+  readonly $eq?: QueryPrimitive;
   readonly $ne?: QueryPrimitive;
   readonly $lt?: number;
   readonly $lte?: number;

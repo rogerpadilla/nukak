@@ -154,21 +154,14 @@ export abstract class SqlDialect {
     return opts.prefix ? ` WHERE ${sql}` : sql;
   }
 
-  comparison(attrSafe: string, val: object | QueryPrimitive | QueryPrimitive[] | null) {
-    if (val === null) {
-      return `${attrSafe} IS NULL`;
-    }
-
-    if (typeof val !== 'object') {
-      return `${attrSafe} = ${escape(val)}`;
-    }
-
-    const comparisonOperators = Object.keys(val) as (keyof QueryComparisonOperator)[];
-
+  comparison(attrSafe: string, value: object | QueryPrimitive | QueryPrimitive[] | null) {
+    const valueObject = typeof value === 'object' && value !== null ? value : { $eq: value };
+    const comparisonOperators = Object.keys(valueObject) as (keyof QueryComparisonOperator)[];
     const comparison = comparisonOperators
-      .map((comparisonOperator) => this.comparisonOperation(attrSafe, comparisonOperator, val[comparisonOperator]))
+      .map((comparisonOperator) =>
+        this.comparisonOperation(attrSafe, comparisonOperator, valueObject[comparisonOperator])
+      )
       .join(' AND ');
-
     return comparisonOperators.length > 1 ? `(${comparison})` : comparison;
   }
 
@@ -178,6 +171,8 @@ export abstract class SqlDialect {
     comparisonVal: QueryComparisonOperator[K]
   ) {
     switch (comparisonOperator) {
+      case '$eq':
+        return comparisonVal === null ? `${attrSafe} IS NULL` : `${attrSafe} = ${escape(comparisonVal)}`;
       case '$ne':
         return comparisonVal === null ? `${attrSafe} IS NOT NULL` : `${attrSafe} <> ${escape(comparisonVal)}`;
       case '$gt':
