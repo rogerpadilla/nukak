@@ -29,8 +29,9 @@ function getQuerierPoolPath(driver: QuerierDriver) {
     case 'mysql':
     case 'mysql2':
       return `./mysql/${driver}QuerierPool`;
-    case 'mongoose':
-      return `./mongo/${driver}QuerierPool`;
+    // TODO mongoose support needs more work and testing
+    // case 'mongoose':
+    //   return `./mongo/${driver}QuerierPool`;
     default:
       throw new Error(`Unsupported driver '${driver}'`);
   }

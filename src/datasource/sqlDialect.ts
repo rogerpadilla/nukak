@@ -8,13 +8,12 @@ import {
   QueryLimit,
   QueryOptions,
   QueryProject,
+  QueryComparisonValue,
 } from '../type';
 import { getEntityMeta, ColumnPersistableMode, getEntityId } from '../entity';
 
 export abstract class SqlDialect {
-  get beginTransactionCommand() {
-    return 'BEGIN';
-  }
+  readonly beginTransactionCommand: string = 'BEGIN';
 
   insert<T>(type: { new (): T }, body: T | T[]) {
     const bodies = Array.isArray(body) ? body : [body];
@@ -133,43 +132,37 @@ export abstract class SqlDialect {
       ...options,
     };
 
-    const logicalOperatorsMap = {
-      $or: 'OR',
-    } as const;
-
     const filterKeys = Object.keys(filter);
 
     const sql = filterKeys
-      .map((filterItKey) => {
-        const filterItVal = filter[filterItKey];
-        if (logicalOperatorsMap[filterItKey]) {
-          const filterItCondition = this.where(filterItVal, { logicalOperator: logicalOperatorsMap[filterItKey] });
+      .map((key) => {
+        const val = filter[key];
+        if (key === '$or') {
+          const filterItCondition = this.where(val, { logicalOperator: 'OR' });
           return filterKeys.length > 1 ? `(${filterItCondition})` : filterItCondition;
         }
-        const filterItKeySafe = escapeId(filterItKey);
-        return this.comparison(filterItKeySafe, filterItVal);
+        return this.comparison(key, val);
       })
       .join(` ${opts.logicalOperator} `);
 
     return opts.prefix ? ` WHERE ${sql}` : sql;
   }
 
-  comparison(attrSafe: string, value: object | QueryPrimitive | QueryPrimitive[] | null) {
-    const valueObject = typeof value === 'object' && value !== null ? value : { $eq: value };
-    const comparisonOperators = Object.keys(valueObject) as (keyof QueryComparisonOperator)[];
+  comparison<T>(key: string, value: QueryComparisonValue<T>) {
+    const valueObject = typeof value === 'object' && value !== null ? value : { $eq: value as QueryPrimitive };
+    const comparisonOperators = Object.keys(valueObject) as (keyof QueryComparisonOperator<T>)[];
     const comparison = comparisonOperators
-      .map((comparisonOperator) =>
-        this.comparisonOperation(attrSafe, comparisonOperator, valueObject[comparisonOperator])
-      )
+      .map((comparisonOperator) => this.comparisonOperation(key, comparisonOperator, valueObject[comparisonOperator]))
       .join(' AND ');
     return comparisonOperators.length > 1 ? `(${comparison})` : comparison;
   }
 
-  comparisonOperation<K extends keyof QueryComparisonOperator>(
-    attrSafe: string,
+  comparisonOperation<T, K extends keyof QueryComparisonOperator<T>>(
+    attr: string,
     comparisonOperator: K,
-    comparisonVal: QueryComparisonOperator[K]
+    comparisonVal: QueryComparisonOperator<T>[K]
   ) {
+    const attrSafe = escapeId(attr);
     switch (comparisonOperator) {
       case '$eq':
         return comparisonVal === null ? `${attrSafe} IS NULL` : `${attrSafe} = ${escape(comparisonVal)}`;
@@ -184,13 +177,11 @@ export abstract class SqlDialect {
       case '$lte':
         return `${attrSafe} <= ${escape(comparisonVal)}`;
       case '$startsWith':
-        return `LOWER (${attrSafe}) LIKE ${escape(`${(comparisonVal as string).toLowerCase()}%`)}`;
+        return `LOWER(${attrSafe}) LIKE ${escape((comparisonVal as string).toLowerCase() + '%')}`;
       case '$in':
         return `${attrSafe} IN (${escape(comparisonVal)})`;
       case '$nin':
         return `${attrSafe} NOT IN (${escape(comparisonVal)})`;
-      case '$match':
-        return `MATCH (${attrSafe}) AGAINST (${escape(comparisonVal)})`;
       default:
         throw new Error(`Invalid comparison operator: ${comparisonOperator}`);
     }

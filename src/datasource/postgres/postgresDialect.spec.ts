@@ -1,15 +1,15 @@
 import { User, Item } from '../../entity/entityMock';
 import { SqlDialect } from '../sqlDialect';
-import { MySqlDialect } from './mysqlDialect';
+import { PostgresDialect } from './postgresDialect';
 
 let sql: SqlDialect;
 
 beforeEach(() => {
-  sql = new MySqlDialect();
+  sql = new PostgresDialect();
 });
 
 it('transaction begin', () => {
-  expect(sql.beginTransactionCommand).toBe('START TRANSACTION');
+  expect(sql.beginTransactionCommand).toBe('BEGIN');
 });
 
 it('find $startsWith', () => {
@@ -19,9 +19,7 @@ it('find $startsWith', () => {
     skip: 0,
     limit: 50,
   });
-  expect(query).toBe(
-    "SELECT * FROM `User` WHERE LOWER(`name`) LIKE 'some%' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0"
-  );
+  expect(query).toBe("SELECT * FROM `User` WHERE `name` ILIKE 'Some%' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
 });
 
 it('find $text', () => {
@@ -30,13 +28,13 @@ it('find $text', () => {
     limit: 30,
   });
   expect(query1).toBe(
-    "SELECT * FROM `Item` WHERE MATCH(`name`, `description`) AGAINST('some text') AND `status` = 1 LIMIT 30"
+    "SELECT * FROM `Item` WHERE to_tsvector(`name` || ' ' || `description`) @@ to_tsquery('some text') AND `status` = 1 LIMIT 30"
   );
   const query2 = sql.find(User, {
     filter: { $text: { fields: ['name'], value: 'something' }, name: { $ne: 'other unwanted' }, status: 1 },
     limit: 10,
   });
   expect(query2).toBe(
-    "SELECT * FROM `User` WHERE MATCH(`name`) AGAINST('something') AND `name` <> 'other unwanted' AND `status` = 1 LIMIT 10"
+    "SELECT * FROM `User` WHERE to_tsvector(`name`) @@ to_tsquery('something') AND `name` <> 'other unwanted' AND `status` = 1 LIMIT 10"
   );
 });
