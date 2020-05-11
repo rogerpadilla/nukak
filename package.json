@@ -48,6 +48,7 @@
     "@typescript-eslint/parser": "^2.32.0",
     "concurrently": "^5.2.0",
     "conventional-changelog-angular": "^5.0.10",
+    "conventional-changelog-cli": "^2.0.34",
     "copy-webpack-plugin": "^5.1.1",
     "eslint": "^7.0.0",
     "eslint-config-prettier": "^6.11.0",
