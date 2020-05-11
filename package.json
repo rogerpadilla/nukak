@@ -157,5 +157,8 @@
     "sqlite",
     "mongodb",
     "mongoose"
-  ]
+  ],
+  "engines": {
+    "node": ">= 8.9.0"
+  }
 }
