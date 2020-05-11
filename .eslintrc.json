@@ -11,7 +11,7 @@
   },
   "plugins": ["@typescript-eslint", "prettier", "eslint-comments", "promise", "jest"],
   "extends": [
-    "airbnb-typescript/base",
+    "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
@@ -26,7 +26,7 @@
   ],
   "rules": {
     "semi": ["warn", "always"],
-    "complexity": ["error", 20],
+    "complexity": ["error", 12],
     "curly": ["error", "all"],
     "no-restricted-syntax": ["error", "LabeledStatement", "WithStatement"],
     "no-implicit-coercion": ["error"],
