@@ -11,7 +11,7 @@
   },
   "plugins": ["@typescript-eslint", "prettier", "eslint-comments", "promise", "jest"],
   "extends": [
-    "eslint:recommended",
+    "airbnb-typescript/base",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
@@ -32,7 +32,7 @@
     "no-implicit-coercion": ["error"],
     "no-new-wrappers": ["error"],
     "no-new-object": ["error"],
-    "new-cap": ["error", {"newIsCap": false, "capIsNew": false}],
+    "new-cap": ["error", { "newIsCap": false, "capIsNew": false }],
     "no-array-constructor": ["error"],
     "max-params": ["error", 4],
     "max-statements": ["error", 30],
@@ -41,7 +41,10 @@
     "max-lines": ["error", 400],
     "no-negated-condition": "error",
     "prettier/prettier": "error",
-    "eslint-comments/disable-enable-pair": ["error", {"allowWholeFile": true}],
+    "eslint-comments/disable-enable-pair": ["error", { "allowWholeFile": true }],
+    "import/order": "warn",
+    
+    "no-continue": 0,
     "require-await": 0,
     "no-case-declarations": 0,
     "class-methods-use-this": 0,
@@ -60,9 +63,7 @@
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-use-before-define": 0,
     "@typescript-eslint/no-unused-vars": 0,
-    "import/prefer-default-export": 0,
-    "import/order": "warn",
-    "promise/catch-or-return": 0,
+    "import/prefer-default-export": 0,    
     "promise/always-return": 0
   },
   "overrides": [

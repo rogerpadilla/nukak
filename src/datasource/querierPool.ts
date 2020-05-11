@@ -24,11 +24,12 @@ function buildQuerierPool(opts: QuerierOptions) {
 
 function getQuerierPoolPath(driver: QuerierDriver) {
   switch (driver) {
-    case 'pg':
-      return `./postgres/${driver}QuerierPool`;
+    case 'mariadb':
     case 'mysql':
     case 'mysql2':
       return `./mysql/${driver}QuerierPool`;
+    case 'pg':
+      return `./postgres/${driver}QuerierPool`;
     // TODO mongoose support needs more work and testing
     // case 'mongoose':
     //   return `./mongo/${driver}QuerierPool`;

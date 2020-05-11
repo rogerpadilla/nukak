@@ -9,6 +9,7 @@ import {
   QueryOptions,
   QueryProject,
   QueryComparisonValue,
+  QueryLogicalOperators,
 } from '../type';
 import { getEntityMeta, ColumnPersistableMode, getEntityId } from '../entity';
 
@@ -223,5 +224,3 @@ function filterPersistableBody<T>(type: { new (): T }, body: T, mode: ColumnPers
     return persistableBody;
   }, {} as T);
 }
-
-export type QueryLogicalOperators = 'AND' | 'OR';

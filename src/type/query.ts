@@ -17,13 +17,15 @@ export type QueryLogicalOperator<T> = {
   readonly $or: QueryFieldFilter<T>;
 };
 
+export type QueryLogicalOperators = 'AND' | 'OR';
+
 export type QueryTextSearchProperties<T> = {
   fields: (keyof T)[];
   value: string;
 };
 
 export type QueryTextSearch<T> = {
-  $text: QueryTextSearchProperties<T>;
+  $text?: QueryTextSearchProperties<T>;
 };
 
 export type QueryComparisonOperator<T> = {

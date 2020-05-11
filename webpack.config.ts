@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import * as path from 'path';
 import * as webpack from 'webpack';
 import * as CopyWebpackPlugin from 'copy-webpack-plugin';
