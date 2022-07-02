@@ -1,6 +1,6 @@
 import { describe, fdescribe, xdescribe, it, fit, xit, beforeAll, beforeEach, afterEach, afterAll } from '@jest/globals';
 
-import type { Global } from '@jest/types';
+import { Global } from '@jest/types';
 
 export function createSpec<T extends Spec>(spec: T) {
   const proto: FunctionConstructor = Object.getPrototypeOf(spec);

@@ -1,11 +1,11 @@
 import { Request } from 'express-serve-static-core';
 import { Router as expressRouter } from 'express';
 
-import { getQuerier } from '@uql/core/options';
-import { EntityMeta, IdValue, Query, QueryOne, QueryUnique, Type } from '@uql/core/type';
-import { kebabCase } from '@uql/core/util';
-import { getEntities, getMeta } from '@uql/core/entity/decorator';
-import { parseQuery } from './query.util';
+import { getQuerier } from '@uql/core/options.js';
+import { EntityMeta, IdValue, Query, QueryOne, QueryUnique, Type } from '@uql/core/type/index.js';
+import { kebabCase } from '@uql/core/util/index.js';
+import { getEntities, getMeta } from '@uql/core/entity/decorator/index.js';
+import { parseQuery } from './query.util.js';
 
 export function querierMiddleware(opts: MiddlewareOptions = {}) {
   const router = expressRouter();

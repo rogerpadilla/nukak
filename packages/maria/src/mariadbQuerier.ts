@@ -1,8 +1,8 @@
 import { PoolConnection } from 'mariadb';
 
-import { QuerierLogger, QueryUpdateResult } from '@uql/core/type';
-import { AbstractSqlQuerier } from '@uql/core/querier';
-import { MySqlDialect } from '@uql/core/dialect';
+import { QuerierLogger, QueryUpdateResult } from '@uql/core/type/index.js';
+import { AbstractSqlQuerier } from '@uql/core/querier/index.js';
+import { MySqlDialect } from '@uql/core/dialect/index.js';
 
 export class MariadbQuerier extends AbstractSqlQuerier {
   constructor(readonly conn: PoolConnection, readonly logger?: QuerierLogger) {

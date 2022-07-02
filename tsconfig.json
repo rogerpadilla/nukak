@@ -1,12 +1,13 @@
 {
   "ts-node": {
-    "files": true
+    "files": true,
+    "esm": true
   },
   "compilerOptions": {
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "lib": ["ESNext"],
+    "module": "ESNext",
+    "lib": ["ES2022"],
     "target": "ES2022",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "strictNullChecks": false,
     "suppressImplicitAnyIndexErrors": true,
@@ -16,7 +17,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "inlineSourceMap": true,
     "inlineSources": true,
     "declaration": true,

@@ -1,5 +1,5 @@
-import { GenericRepository } from './repository/index';
-import { Querier, QuerierPool, Repository, Type } from './type/index';
+import { Querier, QuerierPool, Repository, Type } from './type/index.js';
+import { GenericRepository } from './repository/index.js';
 
 let defaultPool: QuerierPool;
 

@@ -1,44 +1,26 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-import { resolve } from 'path';
-import { Compiler, Configuration } from 'webpack';
+/* eslint-disable import/no-unresolved */
+import { resolve } from 'node:path';
+import ResolveTypeScriptPlugin from 'resolve-typescript-plugin';
 
-const parentDir = '../../';
-const tsPathAliases = require(`${parentDir}tsconfig.json`).compilerOptions.paths;
+import tsconfig from '../../tsconfig.json' assert { type: 'json' };
+
+const tsPathAliases = tsconfig.compilerOptions.paths;
 const entryName = 'uql-client.min';
 const outDir = 'dist';
-type Mode = 'development' | 'production';
-const mode = (process.env.NODE_ENV as Mode) ?? 'development';
+const mode = process.env.NODE_ENV ?? 'development';
 const isProductionMode = mode === 'production';
 console.debug('*** mode', mode);
 
-class DtsBundlePlugin {
-  apply(compiler: Compiler) {
-    compiler.hooks.done.tapAsync('DtsBundlePlugin', () => {
-      const rootDir = resolve(__dirname);
-      const dts = require('dts-bundle');
-      const rimraf = require('rimraf');
-
-      dts.bundle({
-        name: 'uql',
-        main: `${rootDir}/${outDir}/client/**/*.d.ts`,
-        out: `${rootDir}/${outDir}/${entryName}.d.ts`,
-        outputAsModuleFolder: true,
-      });
-
-      rimraf.sync(`${outDir}/{core,client}`);
-    });
-  }
-}
-
-const config: Configuration = {
+export default {
   mode,
   profile: true,
   bail: isProductionMode,
   devtool: isProductionMode ? 'source-map' : 'cheap-module-source-map',
 
   resolve: {
-    extensions: ['.ts', '.js'],
+    extensions: ['.js'],
     alias: buildAlias(),
+    plugins: [new ResolveTypeScriptPlugin()],
   },
 
   entry: {
@@ -62,23 +44,19 @@ const config: Configuration = {
         enforce: 'pre',
       },
       {
-        test: /\.ts$/,
+        test: /\.tsx?$/,
         loader: 'ts-loader',
         exclude: /node_modules/,
       },
     ],
   },
-
-  plugins: [new DtsBundlePlugin()],
 };
 
 function buildAlias() {
   return Object.keys(tsPathAliases).reduce((acc, key) => {
     const prop = key.replace('/*', '');
     const val = tsPathAliases[key][0].replace('/*', '');
-    acc[prop] = resolve(parentDir, val);
+    acc[prop] = resolve('../../', val);
     return acc;
   }, {});
 }
-
-module.exports = config;

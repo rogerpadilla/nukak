@@ -1,8 +1,8 @@
 import { PoolClient } from 'pg';
 
-import { QuerierLogger, QueryUpdateResult } from '@uql/core/type';
-import { AbstractSqlQuerier } from '@uql/core/querier';
-import { PostgresDialect } from '@uql/core/dialect';
+import { QuerierLogger, QueryUpdateResult } from '@uql/core/type/index.js';
+import { AbstractSqlQuerier } from '@uql/core/querier/index.js';
+import { PostgresDialect } from '@uql/core/dialect/index.js';
 
 export class PgQuerier extends AbstractSqlQuerier {
   constructor(readonly conn: PoolClient, readonly logger?: QuerierLogger) {

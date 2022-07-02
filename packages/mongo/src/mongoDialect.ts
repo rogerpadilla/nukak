@@ -10,9 +10,9 @@ import {
   QuerySort,
   FieldValue,
   RelationKey,
-} from '@uql/core/type';
-import { getMeta } from '@uql/core/entity/decorator';
-import { getKeys, hasKeys, buildSortMap, getProjectRelationKeys, getQueryFilterAsMap } from '@uql/core/util';
+} from '@uql/core/type/index.js';
+import { getMeta } from '@uql/core/entity/decorator/index.js';
+import { getKeys, hasKeys, buildSortMap, getProjectRelationKeys, getQueryFilterAsMap } from '@uql/core/util/index.js';
 
 export class MongoDialect {
   filter<E>(entity: Type<E>, filter: QueryFilter<E> = {}, { softDelete }: QueryOptions = {}): FilterQuery<E> {

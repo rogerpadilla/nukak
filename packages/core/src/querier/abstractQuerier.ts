@@ -1,3 +1,4 @@
+import { clone, getKeys, getProjectRelationKeys, getPersistableRelations } from '../util/index.js';
 import {
   IdValue,
   Querier,
@@ -12,10 +13,9 @@ import {
   RelationValue,
   Repository,
   Type,
-} from '../type';
-import { getMeta } from '../entity/index';
-import { clone, getKeys, getProjectRelationKeys, getPersistableRelations } from '../util/index';
-import { GenericRepository } from '../repository/index';
+} from '../type/index.js';
+import { GenericRepository } from '../repository/genericRepository.js';
+import { getMeta } from '../entity/index.js';
 
 export abstract class AbstractQuerier implements Querier {
   abstract count<E>(entity: Type<E>, qm?: QuerySearch<E>): Promise<number>;

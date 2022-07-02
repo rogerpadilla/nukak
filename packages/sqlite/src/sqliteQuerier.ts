@@ -1,7 +1,7 @@
 import { Database } from 'sqlite';
-import { QuerierLogger, QueryUpdateResult } from '@uql/core/type';
-import { AbstractSqlQuerier } from '@uql/core/querier';
-import { SqliteDialect } from '@uql/core/dialect';
+import { QuerierLogger, QueryUpdateResult } from '@uql/core/type/index.js';
+import { AbstractSqlQuerier } from '@uql/core/querier/index.js';
+import { SqliteDialect } from '@uql/core/dialect/index.js';
 
 export class SqliteQuerier extends AbstractSqlQuerier {
   constructor(readonly db: Database, readonly logger?: QuerierLogger) {

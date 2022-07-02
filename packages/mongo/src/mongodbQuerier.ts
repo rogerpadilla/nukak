@@ -1,10 +1,10 @@
 import { MongoClient, ClientSession } from 'mongodb';
-import { Query, Type, QueryCriteria, QueryOptions, QuerySearch, IdValue, QuerierLogger, QueryUnique } from '@uql/core/type';
-import { AbstractQuerier } from '@uql/core/querier';
-import { getMeta } from '@uql/core/entity/decorator';
-import { clone, getPersistable, getPersistables, getFieldCallbackValue, hasKeys, isProjectingRelations } from '@uql/core/util';
+import { Query, Type, QueryCriteria, QueryOptions, QuerySearch, IdValue, QuerierLogger, QueryUnique } from '@uql/core/type/index.js';
+import { AbstractQuerier } from '@uql/core/querier/index.js';
+import { getMeta } from '@uql/core/entity/decorator/index.js';
+import { clone, getPersistable, getPersistables, getFieldCallbackValue, hasKeys, isProjectingRelations } from '@uql/core/util/index.js';
 
-import { MongoDialect } from './mongoDialect';
+import { MongoDialect } from './mongoDialect.js';
 
 export class MongodbQuerier extends AbstractQuerier {
   private session: ClientSession;
