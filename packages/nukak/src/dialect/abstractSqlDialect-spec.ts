@@ -33,12 +33,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           createdAt: 789,
         },
       ])
-    ).toBe(
-      'INSERT INTO `User` (`name`, `email`, `createdAt`) VALUES' +
-        " ('Some name 1', 'someemail1@example.com', 123)" +
-        ", ('Some name 2', 'someemail2@example.com', 456)" +
-        ", ('Some name 3', 'someemail3@example.com', 789)"
-    );
+    ).toBe('INSERT INTO `User` (`name`, `email`, `createdAt`) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)');
   }
 
   shouldInsertOne() {
@@ -48,14 +43,14 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         email: 'someemail@example.com',
         createdAt: 123,
       })
-    ).toBe("INSERT INTO `User` (`name`, `email`, `createdAt`) VALUES ('Some Name', 'someemail@example.com', 123)");
+    ).toBe('INSERT INTO `User` (`name`, `email`, `createdAt`) VALUES (?, ?, ?)');
 
     expect(
       this.dialect.insert(InventoryAdjustment, {
         date: new Date(2021, 11, 31, 23, 59, 59, 999),
         createdAt: 123,
       })
-    ).toBe("INSERT INTO `InventoryAdjustment` (`date`, `createdAt`) VALUES ('2021-12-31 23:59:59.999', 123)");
+    ).toBe('INSERT INTO `InventoryAdjustment` (`date`, `createdAt`) VALUES (?, ?, ?)');
   }
 
   shouldInsertWithOnInsertId() {
@@ -64,7 +59,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         name: 'Some Name',
         createdAt: 123,
       })
-    ).toMatch(/^INSERT INTO `TaxCategory` \(`name`, `createdAt`, `pk`\) VALUES \('Some Name', 123, '.+'\)$/);
+    ).toBe('INSERT INTO `TaxCategory` (`name`, `createdAt`, `pk`) VALUES (?, ?, ?)');
   }
 
   shouldInsertManyWithSpecifiedIdsAndOnInsertIdAsDefault() {
@@ -85,9 +80,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           name: 'Some Name D',
         },
       ])
-    ).toMatch(
-      /^INSERT INTO `TaxCategory` \(`name`, `createdAt`, `pk`\) VALUES \('Some Name A', \d+, '.+'\), \('Some Name B', \d+, '50'\), \('Some Name C', \d+, '.+'\), \('Some Name D', \d+, '70'\)$/
-    );
+    ).toBe('INSERT INTO `TaxCategory` (`name`, `createdAt`, `pk`) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?)');
   }
 
   shouldUpdate() {
@@ -100,7 +93,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           updatedAt: 321,
         }
       )
-    ).toBe("UPDATE `User` SET `name` = 'Some Text', `updatedAt` = 321 WHERE `name` = 'some' AND `creatorId` = 123");
+    ).toBe('UPDATE `User` SET `name` = ?, `updatedAt` = ? WHERE `name` = ? AND `creatorId` = ?');
   }
 
   shouldFind() {
@@ -112,7 +105,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `id` = 123 AND `name` <> 'abc'");
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? AND `name` <> ?');
 
     expect(
       this.dialect.find(
@@ -122,7 +115,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['pk', 'picture', 'companyId']
       )
-    ).toBe("SELECT `pk`, `image` `picture`, `companyId` FROM `user_profile` WHERE `pk` = 123 AND `image` = 'abc'");
+    ).toBe('SELECT `pk`, `image` `picture`, `companyId` FROM `user_profile` WHERE `pk` = ? AND `image` = ?');
 
     expect(
       this.dialect.find(
@@ -132,7 +125,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `MeasureUnit` WHERE `id` = 123 AND `name` = 'abc' AND `deletedAt` IS NULL");
+    ).toBe('SELECT `id` FROM `MeasureUnit` WHERE `id` = ? AND `name` = ? AND `deletedAt` IS NULL');
   }
 
   shouldBeSecure() {
@@ -152,7 +145,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id', 'something' as FieldKey<User>]
       )
-    ).toBe('SELECT `id` FROM `User` WHERE `id` = 1 AND `something` = 1 GROUP BY `id`, `something` ORDER BY `id`, `something`');
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? AND `something` = ? GROUP BY `id`, `something` ORDER BY `id`, `something`');
 
     expect(
       this.dialect.insert(User, {
@@ -160,7 +153,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         something: 'anything',
         createdAt: 1,
       } as any)
-    ).toBe("INSERT INTO `User` (`name`, `createdAt`) VALUES ('Some Name', 1)");
+    ).toBe('INSERT INTO `User` (`name`, `createdAt`) VALUES (?, ?)');
 
     expect(
       this.dialect.update(
@@ -174,17 +167,17 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           updatedAt: 1,
         } as any
       )
-    ).toBe("UPDATE `User` SET `name` = 'Some Name', `updatedAt` = 1 WHERE `something` = 'anything'");
+    ).toBe('UPDATE `User` SET `name` = ?, `updatedAt` = ? WHERE `something` = ?');
 
     expect(
       this.dialect.delete(User, {
         $filter: { something: 'anything' } as any,
       })
-    ).toBe("DELETE FROM `User` WHERE `something` = 'anything'");
+    ).toBe('DELETE FROM `User` WHERE `something` = ?');
   }
 
   shouldFind$and() {
-    const sql = "SELECT `id` FROM `User` WHERE `id` = 123 AND `name` = 'abc'";
+    const sql = 'SELECT `id` FROM `User` WHERE `id` = ? AND `name` = ?';
 
     expect(
       this.dialect.find(
@@ -216,7 +209,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `id` = 123 OR `name` = 'abc'");
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? OR `name` = ?');
 
     expect(
       this.dialect.find(
@@ -226,7 +219,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE `id` = 123');
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ?');
 
     expect(
       this.dialect.find(
@@ -236,7 +229,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: 1 }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `id` = 123 AND `name` = 'abc'");
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? AND `name` = ?');
 
     expect(
       this.dialect.find(
@@ -246,7 +239,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `id` = 123 AND `name` = 'abc'");
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? AND `name` = ?');
   }
 
   shouldFind$not() {
@@ -258,7 +251,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT `name` = 'Some'");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT `name` = ?');
 
     expect(
       this.dialect.find(
@@ -268,7 +261,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `Company` WHERE NOT `id` = 123');
+    ).toBe('SELECT `id` FROM `Company` WHERE NOT `id` = ?');
 
     expect(
       this.dialect.find(
@@ -278,7 +271,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `Company` WHERE NOT `id` IN (123, 456)');
+    ).toBe('SELECT `id` FROM `Company` WHERE NOT `id` IN (?)');
 
     expect(
       this.dialect.find(
@@ -288,7 +281,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `Company` WHERE `id` = 123 AND NOT `name` LIKE 'a%'");
+    ).toBe('SELECT `id` FROM `Company` WHERE `id` = ? AND NOT `name` LIKE ?');
 
     expect(
       this.dialect.find(
@@ -298,7 +291,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `Company` WHERE NOT (`name` LIKE 'a%' AND `name` LIKE '%z')");
+    ).toBe('SELECT `id` FROM `Company` WHERE NOT (`name` LIKE ? AND `name` LIKE ?)');
 
     expect(
       this.dialect.find(
@@ -308,7 +301,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT (`name` LIKE 'Some' AND `name` <> 'Something')");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT (`name` LIKE ? AND `name` <> ?)');
 
     expect(
       this.dialect.find(
@@ -318,7 +311,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT (`name` = 'abc' AND `creatorId` = 1)");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT (`name` = ? AND `creatorId` = ?)');
 
     expect(
       this.dialect.find(
@@ -328,7 +321,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `Tax` WHERE `companyId` = 1 AND NOT `name` LIKE 'a%'");
+    ).toBe('SELECT `id` FROM `Tax` WHERE `companyId` = ? AND NOT `name` LIKE ?');
   }
 
   shouldFind$nor() {
@@ -340,7 +333,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT `name` = 'Some'");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT `name` = ?');
 
     expect(
       this.dialect.find(
@@ -350,7 +343,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT (`name` LIKE 'Some' AND `name` <> 'Something')");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT (`name` LIKE ? AND `name` <> ?)');
 
     expect(
       this.dialect.find(
@@ -360,7 +353,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE NOT (`name` = 'abc' OR `creatorId` = 1)");
+    ).toBe('SELECT `id` FROM `User` WHERE NOT (`name` = ? OR `creatorId` = ?)');
   }
 
   shouldFind$orAnd$and() {
@@ -372,7 +365,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `creatorId` = 1 AND (`name` IN ('a', 'b', 'c') OR `email` = 'abc@example.com') AND `id` = 1");
+    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = ? AND (`name` IN (?) OR `email` = ?) AND `id` = ?');
 
     expect(
       this.dialect.find(
@@ -387,10 +380,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe(
-      'SELECT `id` FROM `User` WHERE `creatorId` = 1' +
-        " AND (`name` IN ('a', 'b', 'c') OR `email` = 'abc@example.com') AND `id` = 1 AND `email` = 'e'"
-    );
+    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = ?' + ' AND (`name` IN (?) OR `email` = ?) AND `id` = ? AND `email` = ?');
 
     expect(
       this.dialect.find(
@@ -409,10 +399,10 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ['id']
       )
     ).toBe(
-      'SELECT `id` FROM `User` WHERE `creatorId` = 1' +
-        " AND (`name` IN ('a', 'b', 'c') OR `email` = 'abc@example.com')" +
-        " AND `id` = 1 AND `email` = 'e'" +
-        ' ORDER BY `name`, `createdAt` DESC LIMIT 10 OFFSET 50'
+      'SELECT `id` FROM `User` WHERE `creatorId` = ?' +
+        ' AND (`name` IN (?) OR `email` = ?)' +
+        ' AND `id` = ? AND `email` = ?' +
+        ' ORDER BY `name`, `createdAt` DESC LIMIT ? OFFSET ?'
     );
 
     expect(
@@ -439,9 +429,9 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ['id']
       )
     ).toBe(
-      "SELECT `id` FROM `User` WHERE (`creatorId` = 1 AND `id` = 1 AND `email` = 'e')" +
-        " OR (`name` IN ('a', 'b', 'c') AND `email` = 'abc@example.com')" +
-        ' ORDER BY `name`, `createdAt` DESC LIMIT 10 OFFSET 50'
+      'SELECT `id` FROM `User` WHERE (`creatorId` = ? AND `id` = ? AND `email` = ?)' +
+        ' OR (`name` IN (?) AND `email` = ?)' +
+        ' ORDER BY `name`, `createdAt` DESC LIMIT ? OFFSET ?'
     );
   }
 
@@ -455,7 +445,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` = 'some' LIMIT 3");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` = ? LIMIT ?');
   }
 
   shouldFindMultipleComparisonOperators() {
@@ -467,7 +457,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (`name` = 'other' AND `name` <> 'other unwanted') OR `companyId` = 1");
+    ).toBe("SELECT `id` FROM `User` WHERE (`name` = 'other' AND `name` <> 'other unwanted') OR `companyId` = ?");
 
     expect(
       this.dialect.find(
@@ -478,7 +468,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE (`createdAt` >= 123 AND `createdAt` <= 999) LIMIT 10');
+    ).toBe('SELECT `id` FROM `User` WHERE (`createdAt` >= ? AND `createdAt` <= ?) LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -489,7 +479,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE (`createdAt` > 123 AND `createdAt` < 999) LIMIT 10');
+    ).toBe('SELECT `id` FROM `User` WHERE (`createdAt` > ? AND `createdAt` < ?) LIMIT ?');
   }
 
   shouldFind$ne() {
@@ -502,7 +492,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` = 'some' AND `companyId` <> 5 LIMIT 20");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` = ? AND `companyId` <> ? LIMIT ?');
   }
 
   shouldFindIsNull() {
@@ -515,7 +505,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = 123 AND `companyId` IS NULL LIMIT 5');
+    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = ? AND `companyId` IS NULL LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -526,11 +516,11 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = 123 AND `companyId` IS NOT NULL LIMIT 5');
+    ).toBe('SELECT `id` FROM `User` WHERE `creatorId` = ? AND `companyId` IS NOT NULL LIMIT ?');
   }
 
   shouldFind$in() {
-    const sql = "SELECT `id` FROM `User` WHERE `name` = 'some' AND `companyId` IN (1, 2, 3) LIMIT 10";
+    const sql = 'SELECT `id` FROM `User` WHERE `name` = ? AND `companyId` IN (?) LIMIT ?';
     expect(
       this.dialect.find(
         User,
@@ -563,7 +553,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` = 'some' AND `companyId` NOT IN (1, 2, 3) LIMIT 10");
+    ).toBe("SELECT `id` FROM `User` WHERE `name` = 'some' AND `companyId` NOT IN (?) LIMIT ?");
   }
 
   shouldFind$projectFields() {
@@ -612,7 +602,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ' FROM `Item`' +
         ' INNER JOIN `Tax` `tax` ON `tax`.`id` = `Item`.`taxId`' +
         ' LEFT JOIN `MeasureUnit` `measureUnit` ON `measureUnit`.`id` = `Item`.`measureUnitId`' +
-        ' LIMIT 100'
+        ' LIMIT ?'
     );
   }
 
@@ -639,8 +629,8 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ' FROM `Item`' +
         " INNER JOIN `MeasureUnit` `measureUnit` ON `measureUnit`.`id` = `Item`.`measureUnitId` AND `measureUnit`.`name` <> 'unidad' AND `measureUnit`.`deletedAt` IS NULL" +
         ' LEFT JOIN `Tax` `tax` ON `tax`.`id` = `Item`.`taxId`' +
-        " WHERE `Item`.`salePrice` >= 1000 AND LOWER(`Item`.`name`) LIKE 'a%'" +
-        ' ORDER BY `tax`.`name`, `measureUnit`.`name`, `Item`.`createdAt` DESC LIMIT 100'
+        ' WHERE `Item`.`salePrice` >= ? AND LOWER(`Item`.`name`) LIKE ?' +
+        ' ORDER BY `tax`.`name`, `measureUnit`.`name`, `Item`.`createdAt` DESC LIMIT ?'
     );
   }
 
@@ -657,7 +647,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           id: 1,
         }
       )
-    ).toBe('SELECT `id` FROM `Item` WHERE (SELECT COUNT(*) `count` FROM `ItemTag` WHERE `ItemTag`.`itemId` = `id`) >= 10');
+    ).toBe('SELECT `id` FROM `Item` WHERE (SELECT COUNT(*) `count` FROM `ItemTag` WHERE `ItemTag`.`itemId` = `id`) >= ?');
 
     expect(
       this.dialect.find(
@@ -682,7 +672,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ', `measureUnit.category`.`id` `measureUnit.category.id`, `measureUnit.category`.`name` `measureUnit.category.name`' +
         ' FROM `Item` LEFT JOIN `MeasureUnit` `measureUnit` ON `measureUnit`.`id` = `Item`.`measureUnitId`' +
         ' LEFT JOIN `MeasureUnitCategory` `measureUnit.category` ON `measureUnit.category`.`id` = `measureUnit`.`categoryId`' +
-        ' LIMIT 100'
+        ' LIMIT ?'
     );
   }
 
@@ -709,7 +699,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ', `measureUnit.category`.`id` `measureUnit.category.id`, `measureUnit.category`.`name` `measureUnit.category.name`' +
         ' FROM `Item` LEFT JOIN `MeasureUnit` `measureUnit` ON `measureUnit`.`id` = `Item`.`measureUnitId`' +
         ' LEFT JOIN `MeasureUnitCategory` `measureUnit.category` ON `measureUnit.category`.`id` = `measureUnit`.`categoryId`' +
-        ' LIMIT 100'
+        ' LIMIT ?'
     );
 
     expect(
@@ -733,7 +723,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ', `measureUnit.category`.`name` `measureUnit.category.name`' +
         ' FROM `Item` LEFT JOIN `MeasureUnit` `measureUnit` ON `measureUnit`.`id` = `Item`.`measureUnitId`' +
         ' LEFT JOIN `MeasureUnitCategory` `measureUnit.category` ON `measureUnit.category`.`id` = `measureUnit`.`categoryId`' +
-        ' LIMIT 100'
+        ' LIMIT ?'
     );
 
     expect(
@@ -767,7 +757,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         ' INNER JOIN `Item` `item` ON `item`.`id` = `ItemAdjustment`.`itemId`' +
         ' LEFT JOIN `MeasureUnit` `item.measureUnit` ON `item.measureUnit`.`id` = `item`.`measureUnitId`' +
         ' LEFT JOIN `MeasureUnitCategory` `item.measureUnit.category` ON `item.measureUnit.category`.`id` = `item.measureUnit`.`categoryId`' +
-        ' LIMIT 100'
+        ' LIMIT ?'
     );
   }
 
@@ -791,7 +781,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['companyId', raw('COUNT(*)', 'count')]
       )
-    ).toBe('SELECT `companyId`, COUNT(*) `count` FROM `User` GROUP BY `companyId` HAVING `count` >= 10');
+    ).toBe('SELECT `companyId`, COUNT(*) `count` FROM `User` GROUP BY `companyId` HAVING `count` >= ?');
 
     expect(
       this.dialect.find(
@@ -805,7 +795,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id', 'name']
       )
-    ).toBe('SELECT `id`, `name` FROM `User` WHERE `companyId` = 1 GROUP BY `companyId` ORDER BY `name` DESC LIMIT 100 OFFSET 50');
+    ).toBe('SELECT `id`, `name` FROM `User` WHERE `companyId` = ? GROUP BY `companyId` ORDER BY `name` DESC LIMIT ? OFFSET ?');
   }
 
   shouldProject$count() {
@@ -825,7 +815,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           counting: { $count: 1 },
         }
       )
-    ).toBe('SELECT `companyId`, COUNT(*) `counting` FROM `User` GROUP BY `companyId` HAVING `counting` >= 10');
+    ).toBe('SELECT `companyId`, COUNT(*) `counting` FROM `User` GROUP BY `companyId` HAVING `counting` >= ?');
   }
 
   shouldProject$max() {
@@ -845,7 +835,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           latest: { $max: 'createdAt' },
         }
       )
-    ).toBe('SELECT `companyId`, MAX(`createdAt`) `latest` FROM `User` GROUP BY `companyId` HAVING `latest` >= 10');
+    ).toBe('SELECT `companyId`, MAX(`createdAt`) `latest` FROM `User` GROUP BY `companyId` HAVING `latest` >= ?');
   }
 
   shouldProject$min() {
@@ -865,7 +855,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           minimum: { $min: 'updatedAt' },
         }
       )
-    ).toBe('SELECT `companyId`, MIN(`updatedAt`) `minimum` FROM `User` GROUP BY `companyId` HAVING `minimum` >= 10');
+    ).toBe('SELECT `companyId`, MIN(`updatedAt`) `minimum` FROM `User` GROUP BY `companyId` HAVING `minimum` >= ?');
   }
 
   shouldProject$avg() {
@@ -885,7 +875,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           average: { $avg: 'createdAt' },
         }
       )
-    ).toBe('SELECT `companyId`, AVG(`createdAt`) `average` FROM `User` GROUP BY `companyId` HAVING `average` >= 10');
+    ).toBe('SELECT `companyId`, AVG(`createdAt`) `average` FROM `User` GROUP BY `companyId` HAVING `average` >= ?');
   }
 
   shouldProject$sum() {
@@ -905,7 +895,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           total: { $sum: 'salePrice' },
         }
       )
-    ).toBe('SELECT `creatorId`, SUM(`salePrice`) `total` FROM `Item` GROUP BY `creatorId` HAVING `total` < 100');
+    ).toBe('SELECT `creatorId`, SUM(`salePrice`) `total` FROM `Item` GROUP BY `creatorId` HAVING `total` < ?');
 
     expect(
       this.dialect.find(
@@ -926,9 +916,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
           },
         }
       )
-    ).toBe(
-      "SELECT `creatorId`, SUM(`salePrice`) `total` FROM `Item` WHERE `id` IN (1, 2) OR `code` = 'abc' GROUP BY `creatorId` HAVING `total` >= 1000"
-    );
+    ).toBe('SELECT `creatorId`, SUM(`salePrice`) `total` FROM `Item` WHERE `id` IN (?) OR `code` = ? GROUP BY `creatorId` HAVING `total` >= ?');
 
     // TODO support this
     // expect(
@@ -962,7 +950,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `User` WHERE `id` = 9 LIMIT 1');
+    ).toBe('SELECT `id` FROM `User` WHERE `id` = ? LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -973,7 +961,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: 1, name: 1, creatorId: 1 }
       )
-    ).toBe('SELECT `id`, `name`, `creatorId` FROM `User` WHERE `id` = 9 LIMIT 1');
+    ).toBe('SELECT `id`, `name`, `creatorId` FROM `User` WHERE `id` = ? LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -984,7 +972,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` = 'something' AND `creatorId` = 123 LIMIT 1");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` = ? AND `creatorId` = ? LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -1030,20 +1018,20 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         [raw('*'), raw('LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt', 'hotness')]
       )
-    ).toBe("SELECT *, LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt `hotness` FROM `User` WHERE `name` = 'something'");
+    ).toBe('SELECT *, LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt `hotness` FROM `User` WHERE `name` = ?');
   }
 
   shouldDelete() {
-    expect(this.dialect.delete(User, { $filter: 123 })).toBe('DELETE FROM `User` WHERE `id` = 123');
+    expect(this.dialect.delete(User, { $filter: 123 })).toBe('DELETE FROM `User` WHERE `id` = ?');
     expect(() => this.dialect.delete(User, { $filter: 123 }, { softDelete: true })).toThrow("'User' has not enabled 'softDelete'");
-    expect(this.dialect.delete(User, { $filter: 123 }, { softDelete: false })).toBe('DELETE FROM `User` WHERE `id` = 123');
-    expect(this.dialect.delete(MeasureUnit, { $filter: 123 })).toMatch(
-      /^UPDATE `MeasureUnit` SET `deletedAt` = \d+ WHERE `id` = 123 AND `deletedAt` IS NULL$/
+    expect(this.dialect.delete(User, { $filter: 123 }, { softDelete: false })).toBe('DELETE FROM `User` WHERE `id` = ?');
+    expect(this.dialect.delete(MeasureUnit, { $filter: 123 })).toBe(
+      'UPDATE `MeasureUnit` SET `deletedAt` = ? WHERE `id` = ? AND `deletedAt` IS NULL'
     );
-    expect(this.dialect.delete(MeasureUnit, { $filter: 123 }, { softDelete: true })).toMatch(
-      /^UPDATE `MeasureUnit` SET `deletedAt` = \d+ WHERE `id` = 123 AND `deletedAt` IS NULL$/
+    expect(this.dialect.delete(MeasureUnit, { $filter: 123 }, { softDelete: true })).toBe(
+      'UPDATE `MeasureUnit` SET `deletedAt` = ? WHERE `id` = ? AND `deletedAt` IS NULL'
     );
-    expect(this.dialect.delete(MeasureUnit, { $filter: 123 }, { softDelete: false })).toBe('DELETE FROM `MeasureUnit` WHERE `id` = 123');
+    expect(this.dialect.delete(MeasureUnit, { $filter: 123 }, { softDelete: false })).toBe('DELETE FROM `MeasureUnit` WHERE `id` = ?');
   }
 
   shouldFind$projectRaw() {
@@ -1094,7 +1082,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['companyId', raw('COUNT(*)', 'count')]
       )
-    ).toBe('SELECT `companyId`, COUNT(*) `count` FROM `User` GROUP BY `companyId` HAVING `count` >= 10');
+    ).toBe('SELECT `companyId`, COUNT(*) `count` FROM `User` GROUP BY `companyId` HAVING `count` >= ?');
 
     expect(
       this.dialect.find(
@@ -1104,7 +1092,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         [raw(() => 'createdAt', 'hotness')]
       )
-    ).toBe("SELECT createdAt `hotness` FROM `User` WHERE `name` = 'something'");
+    ).toBe('SELECT createdAt `hotness` FROM `User` WHERE `name` = ?');
 
     expect(
       this.dialect.find(
@@ -1114,7 +1102,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         [raw('*'), raw('LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt', 'hotness')]
       )
-    ).toBe("SELECT *, LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt `hotness` FROM `User` WHERE `name` = 'something'");
+    ).toBe('SELECT *, LOG10(numberOfVotes + 1) * 287014.5873982681 + createdAt `hotness` FROM `User` WHERE `name` = ?');
   }
 
   shouldFind$filterRaw() {
@@ -1127,7 +1115,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['creatorId']
       )
-    ).toBe('SELECT `creatorId` FROM `Item` WHERE `companyId` = 1 AND SUM(salePrice) > 500 GROUP BY `creatorId`');
+    ).toBe('SELECT `creatorId` FROM `Item` WHERE `companyId` = ? AND SUM(salePrice) > 500 GROUP BY `creatorId`');
 
     expect(
       this.dialect.find(
@@ -1137,7 +1125,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `Item` WHERE `companyId` = 1 OR `id` = 5 OR SUM(salePrice) > 500');
+    ).toBe('SELECT `id` FROM `Item` WHERE `companyId` = ? OR `id` = 5 OR SUM(salePrice) > 500');
 
     expect(
       this.dialect.find(
@@ -1168,7 +1156,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe('SELECT `id` FROM `Item` WHERE SUM(salePrice) > 500 OR `id` = 1 OR `companyId` = 1');
+    ).toBe('SELECT `id` FROM `Item` WHERE SUM(salePrice) > 500 OR `id` = 1 OR `companyId` = ?');
 
     expect(
       this.dialect.find(
@@ -1201,7 +1189,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['creatorId']
       )
-    ).toBe("SELECT `creatorId` FROM `Item` WHERE `id` IN (1, 2) OR `code` = 'abc' GROUP BY `creatorId`");
+    ).toBe('SELECT `creatorId` FROM `Item` WHERE `id` IN (1, 2) OR `code` = ? GROUP BY `creatorId`');
   }
 
   shouldFind$startsWith() {
@@ -1219,7 +1207,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` LIKE 'Some%' ORDER BY `name`, `createdAt` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` LIKE ? ORDER BY `name`, `createdAt` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1232,7 +1220,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (`name` LIKE 'Some%' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (`name` LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$istartsWith() {
@@ -1247,7 +1235,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE 'some%' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1260,7 +1248,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE 'some%' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$endsWith() {
@@ -1275,7 +1263,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` LIKE '%Some' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1288,7 +1276,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (`name` LIKE '%Some' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (`name` LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$iendsWith() {
@@ -1303,7 +1291,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE '%some' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1316,7 +1304,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE '%some' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$includes() {
@@ -1331,7 +1319,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` LIKE '%Some%' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1344,7 +1332,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (`name` LIKE '%Some%' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (`name` LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$iincludes() {
@@ -1359,7 +1347,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE '%some%' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1372,7 +1360,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE '%some%' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$like() {
@@ -1387,7 +1375,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` LIKE 'Some' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1400,7 +1388,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (`name` LIKE 'Some' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (`name` LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$ilike() {
@@ -1415,7 +1403,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE 'some' ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE LOWER(`name`) LIKE ? ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
 
     expect(
       this.dialect.find(
@@ -1428,7 +1416,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE 'some' AND `name` <> 'Something') ORDER BY `name`, `id` DESC LIMIT 50 OFFSET 0");
+    ).toBe('SELECT `id` FROM `User` WHERE (LOWER(`name`) LIKE ? AND `name` <> ?) ORDER BY `name`, `id` DESC LIMIT ? OFFSET ?');
   }
 
   shouldFind$regex() {
@@ -1440,7 +1428,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         ['id']
       )
-    ).toBe("SELECT `id` FROM `User` WHERE `name` REGEXP '^some'");
+    ).toBe('SELECT `id` FROM `User` WHERE `name` REGEXP ?');
   }
 
   shouldFind$text() {
@@ -1453,7 +1441,7 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: true }
       )
-    ).toBe("SELECT `id` FROM `Item` WHERE MATCH(`name`, `description`) AGAINST('some text') AND `companyId` = 1 LIMIT 30");
+    ).toBe('SELECT `id` FROM `Item` WHERE MATCH(`name`, `description`) AGAINST(?) AND `companyId` = ? LIMIT ?');
 
     expect(
       this.dialect.find(
@@ -1468,6 +1456,6 @@ export abstract class AbstractSqlDialectSpec implements Spec {
         },
         { id: 1 }
       )
-    ).toBe("SELECT `id` FROM `User` WHERE MATCH(`name`) AGAINST('something') AND `name` <> 'other unwanted' AND `companyId` = 1 LIMIT 10");
+    ).toBe("SELECT `id` FROM `User` WHERE MATCH(`name`) AGAINST('something') AND `name` <> ? AND `companyId` = ? LIMIT ?");
   }
 }

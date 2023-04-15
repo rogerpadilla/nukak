@@ -31,13 +31,7 @@ class PostgresDialectSpec {
           createdAt: 789,
         },
       ])
-    ).toBe(
-      'INSERT INTO "User" ("name", "email", "createdAt") VALUES' +
-        " ('Some name 1', 'someemail1@example.com', 123)" +
-        ", ('Some name 2', 'someemail2@example.com', 456)" +
-        ", ('Some name 3', 'someemail3@example.com', 789)" +
-        ' RETURNING "id" "id"'
-    );
+    ).toBe('INSERT INTO "User" ("name", "email", "createdAt") VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?) RETURNING "id" "id"');
   }
 
   shouldInsertOne() {
@@ -47,7 +41,7 @@ class PostgresDialectSpec {
         email: 'someemail@example.com',
         createdAt: 123,
       })
-    ).toBe(`INSERT INTO "User" ("name", "email", "createdAt") VALUES ('Some Name', 'someemail@example.com', 123) RETURNING "id" "id"`);
+    ).toBe(`INSERT INTO "User" ("name", "email", "createdAt") VALUES (?, ?, ?) RETURNING "id" "id"`);
   }
 
   shouldInsertWithOnInsertId() {
@@ -56,7 +50,7 @@ class PostgresDialectSpec {
         name: 'Some Name',
         createdAt: 123,
       })
-    ).toMatch(/^INSERT INTO "TaxCategory" \("name", "createdAt", "pk"\) VALUES \('Some Name', 123, '.+'\) RETURNING "pk" "id"$/);
+    ).toBe(`INSERT INTO "TaxCategory" ("name", "createdAt", "pk") VALUES (?, ?, ?) RETURNING "pk" "id"`);
   }
 
   shouldFind$istartsWith() {
@@ -71,7 +65,7 @@ class PostgresDialectSpec {
         },
         ['id']
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE 'Some%' ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE ? ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
 
     expect(
       this.dialect.find(
@@ -84,7 +78,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE 'Some%' AND "name" <> 'Something') ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE ? AND "name" <> ?) ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
   }
 
   shouldFind$iendsWith() {
@@ -99,7 +93,7 @@ class PostgresDialectSpec {
         },
         ['id']
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE '%Some' ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE ? ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
 
     expect(
       this.dialect.find(
@@ -112,7 +106,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE '%Some' AND "name" <> 'Something') ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE ? AND "name" <> ?) ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
   }
 
   shouldFind$iincludes() {
@@ -127,7 +121,7 @@ class PostgresDialectSpec {
         },
         ['id']
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE '%Some%' ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE ? ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
 
     expect(
       this.dialect.find(
@@ -140,7 +134,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE '%Some%' AND "name" <> 'Something') ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE ? AND "name" <> ?) ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
   }
 
   shouldFind$ilike() {
@@ -155,7 +149,7 @@ class PostgresDialectSpec {
         },
         ['id']
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE 'Some' ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE "name" ILIKE ? ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
 
     expect(
       this.dialect.find(
@@ -168,7 +162,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE 'Some' AND "name" <> 'Something') ORDER BY "name", "id" DESC LIMIT 50 OFFSET 0`);
+    ).toBe(`SELECT "id" FROM "User" WHERE ("name" ILIKE ? AND "name" <> ?) ORDER BY "name", "id" DESC LIMIT ? OFFSET ?`);
   }
 
   shouldFind$regex() {
@@ -180,7 +174,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "User" WHERE "name" ~ '^some'`);
+    ).toBe(`SELECT "id" FROM "User" WHERE "name" ~ ?`);
   }
 
   shouldFind$text() {
@@ -193,7 +187,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(`SELECT "id" FROM "Item" WHERE to_tsvector("name" || ' ' || "description") @@ to_tsquery('some text') AND "code" = '1' LIMIT 30`);
+    ).toBe(`SELECT "id" FROM "Item" WHERE to_tsvector("name" || ' ' || "description") @@ to_tsquery(?) AND "code" = ? LIMIT ?`);
 
     expect(
       this.dialect.find(
@@ -208,9 +202,7 @@ class PostgresDialectSpec {
         },
         { id: true }
       )
-    ).toBe(
-      `SELECT "id" FROM "User" WHERE to_tsvector("name") @@ to_tsquery('something') AND "name" <> 'other unwanted' AND "creatorId" = 1 LIMIT 10`
-    );
+    ).toBe(`SELECT "id" FROM "User" WHERE to_tsvector("name") @@ to_tsquery(?) AND "name" <> ? AND "creatorId" = ? LIMIT ?`);
   }
 }
 

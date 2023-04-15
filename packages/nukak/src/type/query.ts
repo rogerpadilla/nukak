@@ -1,4 +1,4 @@
-import { FieldKey, IdValue, Key, RelationKey } from './entity.js';
+import { FieldKey, FieldValue, IdValue, Key, RelationKey } from './entity.js';
 import { BooleanLike, ExpandScalar, Scalar, Type, Unpacked } from './utility.js';
 
 export type QueryOptions = {
@@ -425,7 +425,7 @@ export interface QueryDialect {
    * @param qm the criteria options
    * @param opts the query options
    */
-  find<E, P extends QueryProject<E>>(entity: Type<E>, qm: QueryCriteria<E>, project?: P, opts?: QueryOptions): string;
+  find<E, P extends QueryProject<E>>(entity: Type<E>, qm: QueryCriteria<E>, project?: P, opts?: QueryOptions): [string, FieldValue<E>[]];
 
   /**
    * counts the number of records matching the given search parameters.
@@ -433,7 +433,7 @@ export interface QueryDialect {
    * @param qm the criteria options
    * @param opts the query options
    */
-  count<E>(entity: Type<E>, qm: QuerySearch<E>, opts?: QueryOptions): string;
+  count<E>(entity: Type<E>, qm: QuerySearch<E>, opts?: QueryOptions): [string, FieldValue<E>[]];
 
   /**
    * inser records.
@@ -441,7 +441,7 @@ export interface QueryDialect {
    * @param qm the criteria options
    * @param opts the query options
    */
-  insert<E>(entity: Type<E>, payload: E | readonly E[], opts?: QueryOptions): string;
+  insert<E>(entity: Type<E>, payload: E | readonly E[], opts?: QueryOptions): [string, FieldValue<E>[]];
 
   /**
    * update records.
@@ -450,7 +450,7 @@ export interface QueryDialect {
    * @param payload
    * @param opts the query options
    */
-  update<E>(entity: Type<E>, qm: QuerySearch<E>, payload: E, opts?: QueryOptions): string;
+  update<E>(entity: Type<E>, qm: QuerySearch<E>, payload: E, opts?: QueryOptions): [string, FieldValue<E>[]];
 
   /**
    * delete records.
@@ -458,7 +458,7 @@ export interface QueryDialect {
    * @param qm the criteria options
    * @param opts the query options
    */
-  delete<E>(entity: Type<E>, qm: QuerySearch<E>, opts?: QueryOptions): string;
+  delete<E>(entity: Type<E>, qm: QuerySearch<E>, opts?: QueryOptions): [string, FieldValue<E>[]];
 
   /**
    * escape an identifier.
@@ -467,12 +467,6 @@ export interface QueryDialect {
    * @param addDot use a dot as suffix
    */
   escapeId(val: string, forbidQualified?: boolean, addDot?: boolean): string;
-
-  /**
-   * escape a value.
-   * @param val the value to escape
-   */
-  escape(val: any): Scalar;
 }
 
 export type Merge<E, P> = E & (P extends string[] ? {} : { [K in Exclude<keyof P, keyof E>]: Scalar });

@@ -1,4 +1,3 @@
-import sqlstring from 'sqlstring';
 import {
   QueryFilter,
   Scalar,
@@ -313,41 +312,41 @@ export abstract class AbstractSqlDialect implements QueryDialect {
     const comparisonKey = this.getComparisonKey(entity, key, opts);
     switch (op) {
       case '$eq':
-        return val === null ? `${comparisonKey} IS NULL` : `${comparisonKey} = ${this.escape(val)}`;
+        return val === null ? `${comparisonKey} IS NULL` : `${comparisonKey} = ?`;
       case '$ne':
-        return val === null ? `${comparisonKey} IS NOT NULL` : `${comparisonKey} <> ${this.escape(val)}`;
+        return val === null ? `${comparisonKey} IS NOT NULL` : `${comparisonKey} <> ?`;
       case '$not':
         return this.compare(entity, '$not', [{ [key]: val }] as any, opts);
       case '$gt':
-        return `${comparisonKey} > ${this.escape(val)}`;
+        return `${comparisonKey} > ?`;
       case '$gte':
-        return `${comparisonKey} >= ${this.escape(val)}`;
+        return `${comparisonKey} >= ?`;
       case '$lt':
-        return `${comparisonKey} < ${this.escape(val)}`;
+        return `${comparisonKey} < ?`;
       case '$lte':
-        return `${comparisonKey} <= ${this.escape(val)}`;
+        return `${comparisonKey} <= ?`;
       case '$startsWith':
-        return `${comparisonKey} LIKE ${this.escape(`${val}%`)}`;
+        return `${comparisonKey} LIKE ?`;
       case '$istartsWith':
-        return `LOWER(${comparisonKey}) LIKE ${this.escape((val as string).toLowerCase() + '%')}`;
+        return `LOWER(${comparisonKey}) LIKE ?`;
       case '$endsWith':
-        return `${comparisonKey} LIKE ${this.escape(`%${val}`)}`;
+        return `${comparisonKey} LIKE ?`;
       case '$iendsWith':
-        return `LOWER(${comparisonKey}) LIKE ${this.escape('%' + (val as string).toLowerCase())}`;
+        return `LOWER(${comparisonKey}) LIKE ?`;
       case '$includes':
-        return `${comparisonKey} LIKE ${this.escape(`%${val}%`)}`;
+        return `${comparisonKey} LIKE ?`;
       case '$iincludes':
-        return `LOWER(${comparisonKey}) LIKE ${this.escape('%' + (val as string).toLowerCase() + '%')}`;
+        return `LOWER(${comparisonKey}) LIKE ?`;
       case '$ilike':
-        return `LOWER(${comparisonKey}) LIKE ${this.escape((val as string).toLowerCase())}`;
+        return `LOWER(${comparisonKey}) LIKE ?`;
       case '$like':
-        return `${comparisonKey} LIKE ${this.escape(val)}`;
+        return `${comparisonKey} LIKE ?`;
       case '$in':
-        return `${comparisonKey} IN (${this.escape(val)})`;
+        return `${comparisonKey} IN (?)`;
       case '$nin':
-        return `${comparisonKey} NOT IN (${this.escape(val)})`;
+        return `${comparisonKey} NOT IN (?)`;
       case '$regex':
-        return `${comparisonKey} REGEXP ${this.escape(val)}`;
+        return `${comparisonKey} REGEXP ?`;
       default:
         throw TypeError(`unknown operator: ${op}`);
     }
@@ -433,18 +432,18 @@ export abstract class AbstractSqlDialect implements QueryDialect {
 
   insert<E>(entity: Type<E>, payload: E | E[]): string {
     const meta = getMeta(entity);
-    const records = getPersistables(meta, payload, 'onInsert');
-    const keys = getKeys(records[0]);
+    const persistables = getPersistables(meta, payload, 'onInsert');
+    const keys = getKeys(persistables[0]);
     const columns = keys.map((key) => this.escapeId(meta.fields[key].name));
-    const values = records.map((record) => keys.map((key) => this.escape(record[key])).join(', ')).join('), (');
+    const values = persistables.map((record) => keys.map((key) => this.escape(record[key])).join(', ')).join('), (');
     return `INSERT INTO ${this.escapeId(meta.name)} (${columns.join(', ')}) VALUES (${values})`;
   }
 
   update<E>(entity: Type<E>, qm: QuerySearch<E>, payload: E, opts?: QueryOptions): string {
     const meta = getMeta(entity);
-    const record = getPersistable(meta, payload, 'onUpdate');
-    const keys = getKeys(record);
-    const entries = keys.map((key) => `${this.escapeId(key)} = ${this.escape(payload[key])}`).join(', ');
+    const persistable = getPersistable(meta, payload, 'onUpdate');
+    const keys = getKeys(persistable);
+    const entries = keys.map((key) => `${this.escapeId(key)} = ${this.escape(persistable[key])}`).join(', ');
     const criteria = this.criteria(entity, qm, undefined, opts);
     return `UPDATE ${this.escapeId(meta.name)} SET ${entries}${criteria}`;
   }
@@ -485,12 +484,5 @@ export abstract class AbstractSqlDialect implements QueryDialect {
     const suffix = addDot ? '.' : '';
 
     return escaped + suffix;
-  }
-
-  escape(value: any): Scalar {
-    if (value instanceof QueryRaw) {
-      return getRawValue({ value, dialect: this });
-    }
-    return sqlstring.escape(value);
   }
 }
